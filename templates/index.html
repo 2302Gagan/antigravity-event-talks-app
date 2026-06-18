@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Hub - Live Updates</title>
+    <meta name="description" content="A modern dashboard to track, search, filter, and tweet the latest BigQuery release notes and updates.">
+    <!-- Google Fonts: Outfit for Headings, Inter for Body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Background glow elements for rich aesthetic -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#logoGrad)" />
+                    <path d="M2 17L12 22L22 17" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <defs>
+                        <linearGradient id="logoGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#38BDF8" />
+                            <stop offset="1" stop-color="#A78BFA" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="logo-text">
+                    <h1>BigQuery</h1>
+                    <span>Release Hub</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button id="refreshBtn" class="btn btn-primary" aria-label="Refresh release notes" title="Refresh Feed">
+                    <svg class="icon btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="app-content">
+            <!-- Controls Bar (Sticky) -->
+            <section class="controls-card">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search updates (e.g. Gemini, UDF, Iceberg)..." aria-label="Search updates">
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-container">
+                    <span class="filters-label">Filter by type:</span>
+                    <div class="filter-pills" role="group" aria-label="Filter updates by release type">
+                        <button class="pill active" data-filter="all">All</button>
+                        <button class="pill" data-filter="feature">🚀 Features</button>
+                        <button class="pill" data-filter="announcement">📢 Announcements</button>
+                        <button class="pill" data-filter="breaking">⚠️ Breaking</button>
+                        <button class="pill" data-filter="issue">🐛 Issues</button>
+                        <button class="pill" data-filter="change">🔄 Changes</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state hidden">
+                <div class="spinner"></div>
+                <p>Fetching latest release notes from Google Cloud...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state hidden">
+                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                <h3>No updates found</h3>
+                <p>Try adjusting your search query or filter settings.</p>
+            </div>
+
+            <!-- Feed Timeline Container -->
+            <div id="timeline" class="timeline">
+                <!-- Timeline items will be rendered dynamically by JavaScript -->
+            </div>
+        </main>
+
+        <!-- Floating Selection Action Bar -->
+        <div id="selectionBar" class="selection-bar hidden">
+            <div class="selection-info">
+                <span id="selectionCount" class="selection-count">0</span>
+                <span class="selection-text">update(s) selected</span>
+            </div>
+            <div class="selection-actions">
+                <button id="clearSelectionBtn" class="btn btn-secondary">Clear</button>
+                <button id="tweetSelectedBtn" class="btn btn-tweet">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span>Tweet Selected</span>
+                </button>
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            <p>BigQuery Release Hub &copy; 2026. Data fetched from the official Google Cloud Feed.</p>
+        </footer>
+    </div>
+
+    <!-- Main JavaScript Application -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
